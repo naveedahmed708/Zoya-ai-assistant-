@@ -1,0 +1,11 @@
+{
+  "name": "MAYA AI Assistant - Mobile Manager",
+  "description": "Full-control mobile AI assistant with real-time camera vision, microphone monitoring, Android permission governance, and administrative oversight.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation",
+    "notifications"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
