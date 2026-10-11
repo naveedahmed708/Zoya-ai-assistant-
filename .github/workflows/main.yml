@@ -1,0 +1,74 @@
+
+name: Build MUSKAN AI APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Node.js
+        if: ${{ hashFiles('package.json') != '' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install web dependencies
+        if: ${{ hashFiles('package.json') != '' }}
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Build web application
+        if: ${{ hashFiles('package.json') != '' }}
+        run: npm run build
+
+      - name: Check Android project
+        run: |
+          if [ -f android/gradlew ]; then
+            echo "GRADLE_DIR=android" >> "$GITHUB_ENV"
+          elif [ -f gradlew ]; then
+            echo "GRADLE_DIR=." >> "$GITHUB_ENV"
+          else
+            echo "Android Gradle project or wrapper is missing."
+            echo "Add a real Android project before building the APK."
+            exit 1
+          fi
+
+      - name: Build debug APK
+        run: |
+          chmod +x "$GRADLE_DIR/gradlew"
+          cd "$GRADLE_DIR"
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: MUSKAN-AI-APK
+          path: |
+            android/app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 7
+          
